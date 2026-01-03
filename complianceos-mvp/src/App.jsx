@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AlertCircle, CheckCircle, Clock, Search, Upload, FileText, Shield, TrendingUp, TrendingDown, Activity, Users, DollarSign, ArrowUpRight, ArrowDownRight, BarChart3, Zap } from 'lucide-react';
+import { api } from './lib/api';
 
 const ComplianceOSMVP = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -83,41 +84,63 @@ const ComplianceOSMVP = () => {
     { label: 'High', value: 20, color: 'bg-red-500', percentage: 2.4 }
   ];
 
-  const handleKYCSubmit = () => {
+  // Load cases and stats on component mount
+  useEffect(() => {
+    loadCases();
+    loadStats();
+  }, []);
+
+  const loadCases = async () => {
+    try {
+      const response = await api.getCases();
+      if (response.success) {
+        setCases(response.cases);
+      }
+    } catch (error) {
+      console.error('Failed to load cases:', error);
+      // Keep using mock data if API fails
+    }
+  };
+
+  const loadStats = async () => {
+    try {
+      const response = await api.getStats();
+      if (response.success) {
+        // Stats are already set in state, could update them here if needed
+      }
+    } catch (error) {
+      console.error('Failed to load stats:', error);
+      // Keep using mock data if API fails
+    }
+  };
+
+  const handleKYCSubmit = async () => {
     if (!kycForm.firstName || !kycForm.lastName || !kycForm.dateOfBirth || !kycForm.country || !kycForm.idNumber) {
       return;
     }
-    
+
     setIsProcessing(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      const newCase = {
-        id: `KYC-2025-${String(cases.length + 1).padStart(3, '0')}`,
-        name: `${kycForm.firstName} ${kycForm.lastName}`,
-        status: 'approved',
-        riskLevel: 'low',
-        date: new Date().toISOString().split('T')[0],
-        country: kycForm.country,
-        checks: {
-          identity: 'passed',
-          sanctions: 'passed',
-          pep: 'passed',
-          adverseMedia: 'passed'
-        }
-      };
-      
-      setCases([newCase, ...cases]);
+
+    try {
+      const response = await api.runKYCCheck(kycForm);
+
+      if (response.success) {
+        setCases([response.case, ...cases]);
+        setActiveTab('dashboard');
+        setKycForm({
+          firstName: '',
+          lastName: '',
+          dateOfBirth: '',
+          country: '',
+          idNumber: ''
+        });
+      }
+    } catch (error) {
+      console.error('KYC check failed:', error);
+      alert('KYC check failed. Please try again.');
+    } finally {
       setIsProcessing(false);
-      setActiveTab('dashboard');
-      setKycForm({
-        firstName: '',
-        lastName: '',
-        dateOfBirth: '',
-        country: '',
-        idNumber: ''
-      });
-    }, 2500);
+    }
   };
 
   const StatusBadge = ({ status }) => {
