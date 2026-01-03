@@ -1,4 +1,6 @@
 // Vercel Serverless Function for listing KYC cases
+import { getCases } from '../../src/lib/supabase.js';
+
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -19,62 +21,13 @@ export default async function handler(req, res) {
   }
 
   try {
-    // TODO: Fetch from database (Supabase)
-    // const { data, error } = await supabase
-    //   .from('kyc_cases')
-    //   .select('*')
-    //   .order('date', { ascending: false });
-
-    // Mock data for now (will be replaced with database query)
-    const mockCases = [
-      {
-        id: 'KYC-2025-001',
-        name: 'Sarah Chen',
-        status: 'approved',
-        riskLevel: 'low',
-        date: '2025-12-27',
-        country: 'United States',
-        checks: {
-          identity: 'passed',
-          sanctions: 'passed',
-          pep: 'passed',
-          adverseMedia: 'passed'
-        }
-      },
-      {
-        id: 'KYC-2025-002',
-        name: 'Michael Rodriguez',
-        status: 'review',
-        riskLevel: 'medium',
-        date: '2025-12-27',
-        country: 'Mexico',
-        checks: {
-          identity: 'passed',
-          sanctions: 'passed',
-          pep: 'flagged',
-          adverseMedia: 'passed'
-        }
-      },
-      {
-        id: 'KYC-2025-003',
-        name: 'James Wilson',
-        status: 'approved',
-        riskLevel: 'low',
-        date: '2025-12-26',
-        country: 'United Kingdom',
-        checks: {
-          identity: 'passed',
-          sanctions: 'passed',
-          pep: 'passed',
-          adverseMedia: 'passed'
-        }
-      }
-    ];
+    // Fetch cases from Supabase
+    const cases = await getCases();
 
     return res.status(200).json({
       success: true,
-      cases: mockCases,
-      total: mockCases.length
+      cases: cases,
+      total: cases.length
     });
 
   } catch (error) {

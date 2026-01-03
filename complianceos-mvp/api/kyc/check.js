@@ -1,4 +1,6 @@
 // Vercel Serverless Function for KYC Check
+import { createKYCCase } from '../../src/lib/supabase.js';
+
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -32,26 +34,30 @@ export default async function handler(req, res) {
     // Simulate processing delay (replace with real KYC API calls later)
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    // Mock KYC check results (will be replaced with real API calls)
-    const kycResult = {
-      id: `KYC-${Date.now()}`,
-      name: `${firstName} ${lastName}`,
-      status: 'approved', // or 'review', 'rejected'
-      riskLevel: 'low', // or 'medium', 'high'
-      date: new Date().toISOString().split('T')[0],
-      country: country,
-      checks: {
-        identity: await mockIdentityCheck(firstName, lastName, dateOfBirth),
-        sanctions: await mockSanctionsCheck(firstName, lastName),
-        pep: await mockPEPCheck(firstName, lastName),
-        adverseMedia: await mockAdverseMediaCheck(firstName, lastName)
-      }
+    // Run KYC checks
+    const checks = {
+      identity: await mockIdentityCheck(firstName, lastName, dateOfBirth),
+      sanctions: await mockSanctionsCheck(firstName, lastName),
+      pep: await mockPEPCheck(firstName, lastName),
+      adverseMedia: await mockAdverseMediaCheck(firstName, lastName)
     };
 
-    // TODO: Save to database (Supabase)
-    // const { data, error } = await supabase
-    //   .from('kyc_cases')
-    //   .insert([kycResult]);
+    // Prepare case data
+    const caseData = {
+      id: `KYC-${Date.now()}`,
+      name: `${firstName} ${lastName}`,
+      firstName,
+      lastName,
+      dateOfBirth,
+      country,
+      idNumber,
+      status: 'approved', // or 'review', 'rejected'
+      riskLevel: 'low', // or 'medium', 'high'
+      date: new Date().toISOString().split('T')[0]
+    };
+
+    // Save to Supabase database
+    const kycResult = await createKYCCase(caseData, checks);
 
     return res.status(200).json({
       success: true,

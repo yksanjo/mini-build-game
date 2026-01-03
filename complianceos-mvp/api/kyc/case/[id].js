@@ -1,4 +1,6 @@
 // Vercel Serverless Function for getting a specific KYC case
+import { getCase } from '../../../src/lib/supabase.js';
+
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -25,67 +27,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Case ID is required' });
     }
 
-    // TODO: Fetch from database (Supabase)
-    // const { data, error } = await supabase
-    //   .from('kyc_cases')
-    //   .select('*')
-    //   .eq('id', id)
-    //   .single();
-
-    // Mock data for now
-    const mockCases = {
-      'KYC-2025-001': {
-        id: 'KYC-2025-001',
-        name: 'Sarah Chen',
-        status: 'approved',
-        riskLevel: 'low',
-        date: '2025-12-27',
-        country: 'United States',
-        checks: {
-          identity: 'passed',
-          sanctions: 'passed',
-          pep: 'passed',
-          adverseMedia: 'passed'
-        }
-      },
-      'KYC-2025-002': {
-        id: 'KYC-2025-002',
-        name: 'Michael Rodriguez',
-        status: 'review',
-        riskLevel: 'medium',
-        date: '2025-12-27',
-        country: 'Mexico',
-        checks: {
-          identity: 'passed',
-          sanctions: 'passed',
-          pep: 'flagged',
-          adverseMedia: 'passed'
-        }
-      },
-      'KYC-2025-003': {
-        id: 'KYC-2025-003',
-        name: 'James Wilson',
-        status: 'approved',
-        riskLevel: 'low',
-        date: '2025-12-26',
-        country: 'United Kingdom',
-        checks: {
-          identity: 'passed',
-          sanctions: 'passed',
-          pep: 'passed',
-          adverseMedia: 'passed'
-        }
-      }
-    };
-
-    const caseData = mockCases[id];
-
-    if (!caseData) {
-      return res.status(404).json({
-        error: 'Case not found',
-        id
-      });
-    }
+    // Fetch case from Supabase
+    const caseData = await getCase(id);
 
     return res.status(200).json({
       success: true,

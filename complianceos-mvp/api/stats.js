@@ -1,4 +1,6 @@
 // Vercel Serverless Function for dashboard stats
+import { getStats } from '../src/lib/supabase.js';
+
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -19,32 +21,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    // TODO: Calculate from database (Supabase)
-    // const { data: cases } = await supabase.from('kyc_cases').select('*');
-    // Calculate real stats from cases
-
-    // Mock stats for now
-    const stats = {
-      totalChecks: 847,
-      approved: 782,
-      pending: 12,
-      rejected: 53,
-      approvalRate: 92.3,
-      totalChecksChange: 12.5,
-      approvalRateChange: 2.1,
-      avgProcessingTime: 2.4,
-      riskDistribution: {
-        low: 782,
-        medium: 45,
-        high: 20
-      },
-      weeklyData: [65, 72, 68, 75, 82, 78, 85],
-      riskData: [
-        { label: 'Low', value: 782, color: 'bg-blue-500', percentage: 92.3 },
-        { label: 'Medium', value: 45, color: 'bg-orange-500', percentage: 5.3 },
-        { label: 'High', value: 20, color: 'bg-red-500', percentage: 2.4 }
-      ]
-    };
+    // Get stats from Supabase
+    const stats = await getStats();
 
     return res.status(200).json({
       success: true,
